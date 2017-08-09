@@ -597,19 +597,20 @@ static void shader_set_limits(struct wined3d_shader *shader)
         unsigned int max_version;
         struct wined3d_shader_limits limits;
     }
+#define LIMIT_HACK 900
     vs_limits[] =
     {
         /* min_version, max_version, sampler, constant_int, constant_float, constant_bool, packed_output, packed_input */
-        {WINED3D_SHADER_VERSION(1, 0), WINED3D_SHADER_VERSION(1, 1), { 0,  0, 256,  0, 12,  0}},
-        {WINED3D_SHADER_VERSION(2, 0), WINED3D_SHADER_VERSION(2, 1), { 0, 16, 256, 16, 12,  0}},
+        {WINED3D_SHADER_VERSION(1, 0), WINED3D_SHADER_VERSION(1, 1), { 0,  0, /*256 */LIMIT_HACK,  0, 12,  0}},
+        {WINED3D_SHADER_VERSION(2, 0), WINED3D_SHADER_VERSION(2, 1), { 0, 16, /*256 */LIMIT_HACK, 16, 12,  0}},
         /* DX10 cards on Windows advertise a D3D9 constant limit of 256
          * even though they are capable of supporting much more (GL
          * drivers advertise 1024). d3d9.dll and d3d8.dll clamp the
          * wined3d-advertised maximum. Clamp the constant limit for <= 3.0
          * shaders to 256. */
-        {WINED3D_SHADER_VERSION(3, 0), WINED3D_SHADER_VERSION(3, 0), { 4, 16, 256, 16, 12,  0}},
-        {WINED3D_SHADER_VERSION(4, 0), WINED3D_SHADER_VERSION(4, 0), {16,  0,   0,  0, 16,  0}},
-        {WINED3D_SHADER_VERSION(4, 1), WINED3D_SHADER_VERSION(5, 0), {16,  0,   0,  0, 32,  0}},
+        {WINED3D_SHADER_VERSION(3, 0), WINED3D_SHADER_VERSION(3, 0), { 4, 16, /*256*/LIMIT_HACK, 16, 12,  0}},
+        {WINED3D_SHADER_VERSION(4, 0), WINED3D_SHADER_VERSION(4, 0), {16,  0,   LIMIT_HACK,  0, 16,  0}},
+        {WINED3D_SHADER_VERSION(4, 1), WINED3D_SHADER_VERSION(5, 0), {16,  0,   LIMIT_HACK,  0, 32,  0}},
         {0}
     },
     hs_limits[] =
@@ -763,7 +764,7 @@ static BOOL shader_record_register_usage(struct wined3d_shader *shader, struct w
             {
                 if (reg->idx[0].offset >= min(shader->limits->constant_float, constf_size))
                 {
-                    WARN("Shader using float constant %u which is not supported.\n", reg->idx[0].offset);
+                    WARN("Shader using float constant %u which is not supported (limit %d, %d).\n", reg->idx[0].offset, shader->limits->constant_float, constf_size);
                     return FALSE;
                 }
                 else
@@ -1027,8 +1028,10 @@ static HRESULT shader_get_registers_used(struct wined3d_shader *shader, const st
                         break;
                     }
                     if (shader_version.type == WINED3D_SHADER_TYPE_PIXEL && shader_version.major == 3
-                            && semantic->usage == WINED3D_DECL_USAGE_POSITION && !semantic->usage_idx)
+                            && semantic->usage == WINED3D_DECL_USAGE_POSITION && !semantic->usage_idx) {
+			WARN("shader_version.type == WINED3D_SHADER_TYPE_PIXEL && shader_version.major == 3 ...\n");
                         return WINED3DERR_INVALIDCALL;
+		    }
                     reg_maps->input_registers |= 1u << reg_idx;
                     shader_signature_from_semantic(&input_signature_elements[reg_idx], semantic);
                     break;
@@ -1365,8 +1368,10 @@ static HRESULT shader_get_registers_used(struct wined3d_shader *shader, const st
             for (i = 0; i < ins.dst_count; ++i)
             {
                 if (!shader_record_register_usage(shader, reg_maps, &ins.dst[i].reg,
-                        shader_version.type, constf_size))
+                        shader_version.type, constf_size)) {
+                    WARN("!shader_record_register_usage\n");
                     return WINED3DERR_INVALIDCALL;
+		}
 
                 if (shader_version.type == WINED3D_SHADER_TYPE_VERTEX)
                 {
@@ -1633,8 +1638,10 @@ static HRESULT shader_get_registers_used(struct wined3d_shader *shader, const st
 
             if (ins.predicate)
                 if (!shader_record_register_usage(shader, reg_maps, &ins.predicate->reg,
-                        shader_version.type, constf_size))
+                        shader_version.type, constf_size)) {
+		    WARN("!shader_record_register_usage (2)");
                     return WINED3DERR_INVALIDCALL;
+		}
 
             for (i = 0; i < ins.src_count; ++i)
             {
@@ -1642,14 +1649,18 @@ static HRESULT shader_get_registers_used(struct wined3d_shader *shader, const st
                 struct wined3d_shader_register reg = ins.src[i].reg;
 
                 if (!shader_record_register_usage(shader, reg_maps, &ins.src[i].reg,
-                        shader_version.type, constf_size))
+                        shader_version.type, constf_size)) {
+                    WARN("!shader_record_register_usage (3)\n");
                     return WINED3DERR_INVALIDCALL;
+		}
                 while (count)
                 {
                     ++reg.idx[0].offset;
                     if (!shader_record_register_usage(shader, reg_maps, &reg,
-                            shader_version.type, constf_size))
+                            shader_version.type, constf_size)) {
+			WARN("!shader_record_register_usage (4)");  
                         return WINED3DERR_INVALIDCALL;
+		    }
                     --count;
                 }
 
@@ -1662,7 +1673,7 @@ static HRESULT shader_get_registers_used(struct wined3d_shader *shader, const st
                         shader->u.ps.color0_reg = ins.src[i].reg.idx[0].offset;
                     }
                 }
-            }
+            } //for (i = 0; i < ins.src_count; ++i)
         }
 
         prev_ins = current_ins;

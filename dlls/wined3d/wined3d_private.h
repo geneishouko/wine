@@ -647,7 +647,7 @@ enum wined3d_shader_conditional_op
 #define WINED3D_MAX_CBS 15
 #define WINED3D_MAX_CONSTS_B 16
 #define WINED3D_MAX_CONSTS_I 16
-#define WINED3D_MAX_VS_CONSTS_F 256
+#define WINED3D_MAX_VS_CONSTS_F 1024
 #define WINED3D_MAX_PS_CONSTS_F 224
 
 /* FIXME: This needs to go up to 2048 for

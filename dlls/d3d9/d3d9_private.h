@@ -245,7 +245,7 @@ HRESULT vertexshader_init(struct d3d9_vertexshader *shader,
         struct d3d9_device *device, const DWORD *byte_code) DECLSPEC_HIDDEN;
 struct d3d9_vertexshader *unsafe_impl_from_IDirect3DVertexShader9(IDirect3DVertexShader9 *iface) DECLSPEC_HIDDEN;
 
-#define D3D9_MAX_VERTEX_SHADER_CONSTANTF 256
+#define D3D9_MAX_VERTEX_SHADER_CONSTANTF 8192
 #define D3D9_MAX_SIMULTANEOUS_RENDERTARGETS 4
 
 struct d3d9_pixelshader

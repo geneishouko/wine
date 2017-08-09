@@ -3601,10 +3601,10 @@ static void wined3d_adapter_init_limits(struct wined3d_gl_info *gl_info)
     if (gl_info->supported[ARB_FRAGMENT_PROGRAM])
     {
         GL_EXTCALL(glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, &gl_max));
-        gl_info->limits.arb_ps_float_constants = gl_max;
+        gl_info->limits.arb_ps_float_constants = 8192;
         TRACE("Max ARB_FRAGMENT_PROGRAM float constants: %d.\n", gl_info->limits.arb_ps_float_constants);
         GL_EXTCALL(glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_PARAMETERS_ARB, &gl_max));
-        gl_info->limits.arb_ps_native_constants = gl_max;
+        gl_info->limits.arb_ps_native_constants = 8192;
         TRACE("Max ARB_FRAGMENT_PROGRAM native float constants: %d.\n",
                 gl_info->limits.arb_ps_native_constants);
         GL_EXTCALL(glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_TEMPORARIES_ARB, &gl_max));
@@ -3620,10 +3620,10 @@ static void wined3d_adapter_init_limits(struct wined3d_gl_info *gl_info)
     if (gl_info->supported[ARB_VERTEX_PROGRAM])
     {
         GL_EXTCALL(glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, &gl_max));
-        gl_info->limits.arb_vs_float_constants = gl_max;
+        gl_info->limits.arb_vs_float_constants = 8192;
         TRACE("Max ARB_VERTEX_PROGRAM float constants: %d.\n", gl_info->limits.arb_vs_float_constants);
         GL_EXTCALL(glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_PARAMETERS_ARB, &gl_max));
-        gl_info->limits.arb_vs_native_constants = gl_max;
+        gl_info->limits.arb_vs_native_constants = 8192;
         TRACE("Max ARB_VERTEX_PROGRAM native float constants: %d.\n",
                 gl_info->limits.arb_vs_native_constants);
         GL_EXTCALL(glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_TEMPORARIES_ARB, &gl_max));
@@ -3636,7 +3636,7 @@ static void wined3d_adapter_init_limits(struct wined3d_gl_info *gl_info)
     if (gl_info->supported[ARB_VERTEX_SHADER])
     {
         gl_info->gl_ops.gl.p_glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &gl_max);
-        gl_info->limits.glsl_vs_float_constants = gl_max / 4;
+        gl_info->limits.glsl_vs_float_constants = gl_max;
         TRACE("Max ARB_VERTEX_SHADER float constants: %u.\n", gl_info->limits.glsl_vs_float_constants);
 
         if (gl_info->supported[ARB_UNIFORM_BUFFER_OBJECT])
@@ -3678,7 +3678,7 @@ static void wined3d_adapter_init_limits(struct wined3d_gl_info *gl_info)
     if (gl_info->supported[ARB_FRAGMENT_SHADER])
     {
         gl_info->gl_ops.gl.p_glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, &gl_max);
-        gl_info->limits.glsl_ps_float_constants = gl_max / 4;
+        gl_info->limits.glsl_ps_float_constants = gl_max;
         TRACE("Max ARB_FRAGMENT_SHADER float constants: %u.\n", gl_info->limits.glsl_ps_float_constants);
         gl_info->gl_ops.gl.p_glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &gl_max);
         gl_info->limits.glsl_varyings = gl_max;
