@@ -5855,6 +5855,9 @@ void wined3d_ffp_get_vs_settings(const struct wined3d_context *context,
         settings->flatshading = FALSE;
 
     settings->swizzle_map = si->swizzle_map;
+
+    if (state->render_states[WINED3D_RS_INDEXEDVERTEXBLENDENABLE] && (si->use_map & (1 << WINED3D_FFP_BLENDINDICES)))
+        settings->vb_indices = 1;
 }
 
 int wined3d_ffp_vertex_program_key_compare(const void *key, const struct wine_rb_entry *entry)
