@@ -600,14 +600,14 @@ static void shader_set_limits(struct wined3d_shader *shader)
     vs_limits[] =
     {
         /* min_version, max_version, sampler, constant_int, constant_float, constant_bool, packed_output, packed_input */
-        {WINED3D_SHADER_VERSION(1, 0), WINED3D_SHADER_VERSION(1, 1), { 0,  0, 256,  0, 12,  0}},
-        {WINED3D_SHADER_VERSION(2, 0), WINED3D_SHADER_VERSION(2, 1), { 0, 16, 256, 16, 12,  0}},
+        {WINED3D_SHADER_VERSION(1, 0), WINED3D_SHADER_VERSION(1, 1), { 0,  0, /*256 */1024,  0, 12,  0}},
+        {WINED3D_SHADER_VERSION(2, 0), WINED3D_SHADER_VERSION(2, 1), { 0, 16, /*256 */1024, 16, 12,  0}},
         /* DX10 cards on Windows advertise a D3D9 constant limit of 256
          * even though they are capable of supporting much more (GL
          * drivers advertise 1024). d3d9.dll and d3d8.dll clamp the
          * wined3d-advertised maximum. Clamp the constant limit for <= 3.0
          * shaders to 256. */
-        {WINED3D_SHADER_VERSION(3, 0), WINED3D_SHADER_VERSION(3, 0), { 4, 16, 256, 16, 12,  0}},
+        {WINED3D_SHADER_VERSION(3, 0), WINED3D_SHADER_VERSION(3, 0), { 4, 16, /*256*/1024, 16, 12,  0}},
         {WINED3D_SHADER_VERSION(4, 0), WINED3D_SHADER_VERSION(4, 0), {16,  0,   0,  0, 16,  0}},
         {WINED3D_SHADER_VERSION(4, 1), WINED3D_SHADER_VERSION(5, 0), {16,  0,   0,  0, 32,  0}},
         {0}
