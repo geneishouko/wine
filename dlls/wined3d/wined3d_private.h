@@ -2780,6 +2780,16 @@ struct wined3d_state
     struct wined3d_rasterizer_state *rasterizer_state;
 };
 
+#if defined(STAGING_CSMT)
+struct wined3d_gl_bo
+{
+    GLuint name;
+    GLenum usage;
+    GLenum type_hint;
+    UINT size;
+};
+
+#endif /* STAGING_CSMT */
 #define WINED3D_UNMAPPED_STAGE ~0u
 
 /* Multithreaded flag. Removed from the public header to signal that
@@ -2855,11 +2865,13 @@ struct wined3d_device
     /* Textures for when no other textures are mapped */
     struct
     {
+        GLuint tex_1d;
         GLuint tex_2d;
         GLuint tex_rect;
         GLuint tex_3d;
         GLuint tex_cube;
         GLuint tex_cube_array;
+        GLuint tex_1d_array;
         GLuint tex_2d_array;
         GLuint tex_buffer;
     } dummy_textures;
@@ -2889,6 +2901,12 @@ LRESULT device_process_message(struct wined3d_device *device, HWND window, BOOL 
 void device_resource_add(struct wined3d_device *device, struct wined3d_resource *resource) DECLSPEC_HIDDEN;
 void device_resource_released(struct wined3d_device *device, struct wined3d_resource *resource) DECLSPEC_HIDDEN;
 void device_invalidate_state(const struct wined3d_device *device, DWORD state) DECLSPEC_HIDDEN;
+#if defined(STAGING_CSMT)
+struct wined3d_gl_bo *wined3d_device_get_bo(struct wined3d_device *device, UINT size, GLenum gl_usage,
+        GLenum type_hint, struct wined3d_context *context) DECLSPEC_HIDDEN;
+void wined3d_device_release_bo(struct wined3d_device *device, struct wined3d_gl_bo *bo,
+        const struct wined3d_context *context) DECLSPEC_HIDDEN;
+#endif /* STAGING_CSMT */
 
 static inline BOOL isStateDirty(const struct wined3d_context *context, DWORD state)
 {
@@ -3074,7 +3092,11 @@ struct wined3d_texture
 
         unsigned int map_count;
         DWORD locations;
+#if !defined(STAGING_CSMT)
         GLuint buffer_object;
+#else  /* STAGING_CSMT */
+        struct wined3d_gl_bo *buffer;
+#endif /* STAGING_CSMT */
     } sub_resources[1];
 };
 
@@ -3377,9 +3399,15 @@ enum wined3d_push_constants
     WINED3D_PUSH_CONSTANTS_PS_B,
 };
 
+#if 0
 #define WINED3D_CS_QUERY_POLL_INTERVAL  10u
 #define WINED3D_CS_QUEUE_SIZE           0x100000u
 #define WINED3D_CS_SPIN_COUNT           10000000u
+#else
+#define WINED3D_CS_QUERY_POLL_INTERVAL  100u
+#define WINED3D_CS_QUEUE_SIZE           0x400000u
+#define WINED3D_CS_SPIN_COUNT           100000u
+#endif
 
 struct wined3d_cs_queue
 {
@@ -3389,6 +3417,9 @@ struct wined3d_cs_queue
 
 struct wined3d_cs_ops
 {
+#if defined(STAGING_CSMT)
+    BOOL (*check_space)(struct wined3d_cs *cs, size_t size, enum wined3d_cs_queue_id queue_id);
+#endif /* STAGING_CSMT */
     void *(*require_space)(struct wined3d_cs *cs, size_t size, enum wined3d_cs_queue_id queue_id);
     void (*submit)(struct wined3d_cs *cs, enum wined3d_cs_queue_id queue_id);
     void (*finish)(struct wined3d_cs *cs, enum wined3d_cs_queue_id queue_id);
