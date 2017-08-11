@@ -220,7 +220,7 @@ static BOOL wined3d_dll_init(HINSTANCE hInstDLL)
         }
     }
 
-    if (hkey || appkey)
+    if (1)
     {
         if (!get_config_key_dword(hkey, appkey, "csmt", &wined3d_settings.cs_multithreaded))
             ERR_(winediag)("Setting multithreaded command stream to %#x.\n", wined3d_settings.cs_multithreaded);
