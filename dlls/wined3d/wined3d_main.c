@@ -79,7 +79,7 @@ struct wined3d_settings wined3d_settings =
 #endif /* STAGING_CSMT */
     MAKEDWORD_VERSION(1, 0), /* Default to legacy OpenGL */
     TRUE,           /* Use of GLSL enabled by default */
-    ORM_FBO,        /* Use FBOs to do offscreen rendering */
+    ORM_BACKBUFFER,        /* DONT Use FBOs to do offscreen rendering */
     PCI_VENDOR_NONE,/* PCI Vendor ID */
     PCI_DEVICE_NONE,/* PCI Device ID */
     0,              /* The default of memory is set in init_driver_info */
