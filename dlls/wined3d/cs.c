@@ -2647,10 +2647,6 @@ static DWORD WINAPI wined3d_cs_run(void *ctx)
     unsigned int poll = 0;
     LONG tail;
 
-    wined3d_cs_spin_count = GET_ENV(WINED3D_CS_SPIN_COUNT);
-    wined3d_cs_queue_size = GET_ENV(WINED3D_CS_QUEUE_SIZE);
-    wined3d_cs_query_poll_interval = GET_ENV(WINED3D_CS_QUERY_POLL_INTERVAL);
-
     TRACE("Started.\n");
 
     list_init(&cs->query_poll_list);
@@ -2707,6 +2703,10 @@ struct wined3d_cs *wined3d_cs_create(struct wined3d_device *device)
 {
     const struct wined3d_gl_info *gl_info = &device->adapter->gl_info;
     struct wined3d_cs *cs;
+
+    wined3d_cs_spin_count = GET_ENV(WINED3D_CS_SPIN_COUNT);
+    wined3d_cs_queue_size = GET_ENV(WINED3D_CS_QUEUE_SIZE);
+    wined3d_cs_query_poll_interval = GET_ENV(WINED3D_CS_QUERY_POLL_INTERVAL);
 
     if (!(cs = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(*cs))))
         return NULL;
