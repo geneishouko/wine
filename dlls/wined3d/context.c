@@ -3726,6 +3726,7 @@ static void context_bind_shader_resources(struct wined3d_context *context,
     const struct wined3d_shader *shader;
     struct wined3d_sampler *sampler;
     const DWORD *tex_unit_map;
+    const struct wined3d_gl_info *gl_info = context->gl_info;
 
     if (!(shader = state->shader[shader_type]))
         return;
@@ -3749,6 +3750,10 @@ static void context_bind_shader_resources(struct wined3d_context *context,
         if (!(view = state->shader_resource_view[shader_type][entry->resource_idx]))
         {
             WARN("No resource view bound at index %u, %u.\n", shader_type, entry->resource_idx);
+            context_active_texture(context, gl_info, bind_idx); 
+            context_bind_texture(context, GL_NONE, 0); 
+            GL_EXTCALL(glBindSampler(bind_idx, 0)); 
+            checkGLcall("unbind shader resource"); 
             continue;
         }
 
@@ -3756,6 +3761,12 @@ static void context_bind_shader_resources(struct wined3d_context *context,
             sampler = device->default_sampler;
         else if (!(sampler = state->sampler[shader_type][entry->sampler_idx]))
             sampler = device->null_sampler;
+
+	// XXX use wined3d_sampler_bind
+        context_active_texture(context, gl_info, bind_idx); 
+        GL_EXTCALL(glBindSampler(bind_idx, sampler->name)); 
+
+        checkGLcall("glBindSampler"); 
         wined3d_shader_resource_view_bind(view, bind_idx, sampler, context);
     }
 }

@@ -4961,9 +4961,12 @@ static void state_cb_warn(struct wined3d_context *context, const struct wined3d_
 static void state_shader_resource_binding(struct wined3d_context *context,
         const struct wined3d_state *state, DWORD state_id)
 {
+    const struct wined3d_d3d_info *d3d_info = context->d3d_info; 
+ 
     TRACE("context %p, state %p, state_id %#x.\n", context, state, state_id);
 
-    context->update_shader_resource_bindings = 1;
+    if (!(d3d_info->wined3d_creation_flags & WINED3D_LEGACY_TEXTURE_BINDING)) 
+        context->update_shader_resource_bindings = 1; 
 }
 
 static void state_cs_resource_binding(struct wined3d_context *context,
