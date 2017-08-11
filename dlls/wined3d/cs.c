@@ -20,6 +20,8 @@
 #include "wine/port.h"
 #include "wined3d_private.h"
 
+static int wined3d_cs_spin_count, wined3d_cs_queue_size, wined3d_cs_query_poll_interval;
+
 WINE_DEFAULT_DEBUG_CHANNEL(d3d);
 
 #define WINED3D_INITIAL_CS_SIZE 4096
@@ -2464,7 +2466,7 @@ static void wined3d_cs_queue_submit(struct wined3d_cs_queue *queue, struct wined
 
     packet = (struct wined3d_cs_packet *)&queue->data[queue->head];
     packet_size = FIELD_OFFSET(struct wined3d_cs_packet, data[packet->size]);
-    InterlockedExchange(&queue->head, (queue->head + packet_size) & (WINED3D_CS_QUEUE_SIZE - 1));
+    InterlockedExchange(&queue->head, (queue->head + packet_size) & (wined3d_cs_queue_size - 1));
 
     if (InterlockedCompareExchange(&cs->waiting_for_event, FALSE, TRUE))
         SetEvent(cs->event);
@@ -2502,10 +2504,10 @@ static void *wined3d_cs_queue_require_space(struct wined3d_cs_queue *queue, size
     header_size = FIELD_OFFSET(struct wined3d_cs_packet, data[0]);
     size = (size + header_size - 1) & ~(header_size - 1);
     packet_size = FIELD_OFFSET(struct wined3d_cs_packet, data[size]);
-    if (packet_size >= WINED3D_CS_QUEUE_SIZE)
+    if (packet_size >= wined3d_cs_queue_size)
     {
         ERR("Packet size %lu >= queue size %u.\n",
-                (unsigned long)packet_size, WINED3D_CS_QUEUE_SIZE);
+                (unsigned long)packet_size, wined3d_cs_queue_size);
         return NULL;
     }
 
@@ -2535,7 +2537,7 @@ static void *wined3d_cs_queue_require_space(struct wined3d_cs_queue *queue, size
         /* Empty. */
         if (head == tail)
             break;
-        new_pos = (head + packet_size) & (WINED3D_CS_QUEUE_SIZE - 1);
+        new_pos = (head + packet_size) & (wined3d_cs_queue_size - 1);
         /* Head ahead of tail. We checked the remaining size above, so we only
          * need to make sure we don't make head equal to tail. */
         if (head > tail && (new_pos != tail))
@@ -2626,6 +2628,15 @@ static void wined3d_cs_wait_event(struct wined3d_cs *cs)
     WaitForSingleObject(cs->event, INFINITE);
 }
 
+#define GET_ENV(n) get_env(#n, n)
+static int get_env(const char *name, int def)
+{
+	char buf[128];
+	if (GetEnvironmentVariableA(name, buf, 128))
+		return atoi(buf);
+	return def;
+}
+
 static DWORD WINAPI wined3d_cs_run(void *ctx)
 {
     struct wined3d_cs_packet *packet;
@@ -2636,13 +2647,17 @@ static DWORD WINAPI wined3d_cs_run(void *ctx)
     unsigned int poll = 0;
     LONG tail;
 
+    wined3d_cs_spin_count = GET_ENV(WINED3D_CS_SPIN_COUNT);
+    wined3d_cs_queue_size = GET_ENV(WINED3D_CS_QUEUE_SIZE);
+    wined3d_cs_query_poll_interval = GET_ENV(WINED3D_CS_QUERY_POLL_INTERVAL);
+
     TRACE("Started.\n");
 
     list_init(&cs->query_poll_list);
     cs->thread_id = GetCurrentThreadId();
     for (;;)
     {
-        if (++poll == WINED3D_CS_QUERY_POLL_INTERVAL)
+        if (++poll == wined3d_cs_query_poll_interval)
         {
             poll_queries(cs);
             poll = 0;
@@ -2654,7 +2669,7 @@ static DWORD WINAPI wined3d_cs_run(void *ctx)
             queue = &cs->queue[WINED3D_CS_QUEUE_DEFAULT];
             if (wined3d_cs_queue_is_empty(queue))
             {
-                if (++spin_count >= WINED3D_CS_SPIN_COUNT && list_empty(&cs->query_poll_list))
+                if (++spin_count >= wined3d_cs_spin_count && list_empty(&cs->query_poll_list))
                     wined3d_cs_wait_event(cs);
                 continue;
             }
@@ -2678,7 +2693,7 @@ static DWORD WINAPI wined3d_cs_run(void *ctx)
         }
 
         tail += FIELD_OFFSET(struct wined3d_cs_packet, data[packet->size]);
-        tail &= (WINED3D_CS_QUEUE_SIZE - 1);
+        tail &= (wined3d_cs_queue_size - 1);
         InterlockedExchange(&queue->tail, tail);
     }
 

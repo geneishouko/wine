@@ -79,7 +79,7 @@ struct wined3d_settings wined3d_settings =
 #endif /* STAGING_CSMT */
     MAKEDWORD_VERSION(1, 0), /* Default to legacy OpenGL */
     TRUE,           /* Use of GLSL enabled by default */
-    ORM_BACKBUFFER,        /* DONT Use FBOs to do offscreen rendering */
+    ORM_FBO,        /* Use FBOs to do offscreen rendering */
     PCI_VENDOR_NONE,/* PCI Vendor ID */
     PCI_DEVICE_NONE,/* PCI Device ID */
     0,              /* The default of memory is set in init_driver_info */
@@ -128,17 +128,24 @@ static DWORD get_config_key(HKEY defkey, HKEY appkey, const char *name, char *bu
 {
     if (appkey && !RegQueryValueExA(appkey, name, 0, NULL, (BYTE *)buffer, &size)) return 0;
     if (defkey && !RegQueryValueExA(defkey, name, 0, NULL, (BYTE *)buffer, &size)) return 0;
+    if (GetEnvironmentVariableA(name, buffer, size))
+	    return 0;
     return ERROR_FILE_NOT_FOUND;
 }
 
 static DWORD get_config_key_dword(HKEY defkey, HKEY appkey, const char *name, DWORD *value)
 {
+    char buf[128];
     DWORD type, data, size;
 
     size = sizeof(data);
     if (appkey && !RegQueryValueExA(appkey, name, 0, &type, (BYTE *)&data, &size) && type == REG_DWORD) goto success;
     size = sizeof(data);
     if (defkey && !RegQueryValueExA(defkey, name, 0, &type, (BYTE *)&data, &size) && type == REG_DWORD) goto success;
+    if (GetEnvironmentVariableA(name, buf, 128)) {
+	    *value = atoi(buf);
+	    return 0;
+    }
 
     return ERROR_FILE_NOT_FOUND;
 
