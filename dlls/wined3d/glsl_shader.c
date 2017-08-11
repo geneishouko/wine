@@ -2933,9 +2933,12 @@ static void shader_glsl_get_register_name(const struct wined3d_shader_register *
             break;
 
         case WINED3DSPR_COLOROUT:
-            if (reg->idx[0].offset >= gl_info->limits.buffers)
+            if (reg->idx[0].offset >= gl_info->limits.buffers) {
                 WARN("Write to render target %u, only %d supported.\n",
                         reg->idx[0].offset, gl_info->limits.buffers);
+            	sprintf(register_name, "// %s[%u]", get_fragment_output(gl_info), reg->idx[0].offset);
+		break;
+	    }
 
             sprintf(register_name, "%s[%u]", get_fragment_output(gl_info), reg->idx[0].offset);
             break;
