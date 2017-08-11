@@ -2291,6 +2291,9 @@ const DWORD *context_get_tex_unit_mapping(const struct wined3d_context *context,
 {
     const struct wined3d_gl_info *gl_info = context->gl_info;
 
+    if (context->d3d_info->wined3d_creation_flags & WINED3D_LEGACY_TEXTURE_BINDING)
+	shader_version = NULL;
+
     if (!shader_version)
     {
         *base = 0;
