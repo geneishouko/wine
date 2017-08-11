@@ -2906,7 +2906,7 @@ static HRESULT WINAPI d3d9_device_SetFVF(IDirect3DDevice9Ex *iface, DWORD fvf)
 
     if (!fvf)
     {
-        WARN("%#x is not a valid FVF.\n", fvf);
+//        WARN("%#x is not a valid FVF.\n", fvf);
         return D3D_OK;
     }
 

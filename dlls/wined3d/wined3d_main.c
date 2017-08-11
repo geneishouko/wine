@@ -110,6 +110,7 @@ struct wined3d * CDECL wined3d_create(DWORD flags)
 
     if (wined3d_settings.no_3d)
         flags |= WINED3D_NO3D;
+    flags |= WINED3D_LEGACY_TEXTURE_BINDING;
 
     hr = wined3d_init(object, flags);
     if (FAILED(hr))

@@ -2642,8 +2642,9 @@ static HRESULT texture_init(struct wined3d_texture *texture, const struct wined3
     if (desc->usage & WINED3DUSAGE_DYNAMIC && desc->pool == WINED3D_POOL_MANAGED)
         FIXME("Trying to create a managed texture with dynamic usage.\n");
     if (!(desc->usage & (WINED3DUSAGE_DYNAMIC | WINED3DUSAGE_RENDERTARGET | WINED3DUSAGE_DEPTHSTENCIL))
-            && (flags & WINED3D_TEXTURE_CREATE_MAPPABLE))
-        WARN("Creating a mappable texture in the default pool that doesn't specify dynamic usage.\n");
+            && (flags & WINED3D_TEXTURE_CREATE_MAPPABLE)) {
+        //WARN("Creating a mappable texture in the default pool that doesn't specify dynamic usage.\n");
+    }
     if (desc->usage & WINED3DUSAGE_RENDERTARGET && desc->pool != WINED3D_POOL_DEFAULT)
         FIXME("Trying to create a render target that isn't in the default pool.\n");
 
