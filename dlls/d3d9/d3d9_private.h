@@ -101,7 +101,7 @@ struct d3d9_device
     struct d3d9_swapchain **implicit_swapchains;
 };
 
-HRESULT device_init(struct d3d9_device *device, struct d3d9 *parent, struct wined3d *wined3d,
+HRESULT d3d9_device_init(struct d3d9_device *device, struct d3d9 *parent, struct wined3d *wined3d,
         UINT adapter, D3DDEVTYPE device_type, HWND focus_window, DWORD flags,
         D3DPRESENT_PARAMETERS *parameters, D3DDISPLAYMODEEX *mode) DECLSPEC_HIDDEN;
 
