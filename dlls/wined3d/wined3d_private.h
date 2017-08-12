@@ -3412,7 +3412,7 @@ enum wined3d_push_constants
 struct wined3d_cs_queue
 {
     LONG head, tail;
-    BYTE data[WINED3D_CS_QUEUE_SIZE];
+    BYTE *data;
 };
 
 struct wined3d_cs_ops

@@ -2483,7 +2483,7 @@ static void wined3d_cs_mt_submit(struct wined3d_cs *cs, enum wined3d_cs_queue_id
 #if defined(STAGING_CSMT)
 static BOOL wined3d_cs_queue_check_space(struct wined3d_cs_queue *queue, size_t size)
 {
-    size_t queue_size = ARRAY_SIZE(queue->data);
+    size_t queue_size = wined3d_cs_queue_size;
     size_t header_size, packet_size, remaining;
 
     header_size = FIELD_OFFSET(struct wined3d_cs_packet, data[0]);
@@ -2497,7 +2497,7 @@ static BOOL wined3d_cs_queue_check_space(struct wined3d_cs_queue *queue, size_t 
 #endif /* STAGING_CSMT */
 static void *wined3d_cs_queue_require_space(struct wined3d_cs_queue *queue, size_t size, struct wined3d_cs *cs)
 {
-    size_t queue_size = ARRAY_SIZE(queue->data);
+    size_t queue_size = wined3d_cs_queue_size;
     size_t header_size, packet_size, remaining;
     struct wined3d_cs_packet *packet;
 
@@ -2648,6 +2648,7 @@ static DWORD WINAPI wined3d_cs_run(void *ctx)
     LONG tail;
 
     TRACE("Started.\n");
+    assert(cs->queue[0].data);
 
     list_init(&cs->query_poll_list);
     cs->thread_id = GetCurrentThreadId();
@@ -2758,6 +2759,9 @@ struct wined3d_cs *wined3d_cs_create(struct wined3d_device *device)
         }
     }
 
+    for (int i = 0; i < WINED3D_CS_QUEUE_COUNT; i++)
+	cs->queue[i].data = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, wined3d_cs_queue_size);
+
     return cs;
 
 fail:
@@ -2778,6 +2782,9 @@ void wined3d_cs_destroy(struct wined3d_cs *cs)
     }
 
     state_cleanup(&cs->state);
+    for (int i = 0; i < WINED3D_CS_QUEUE_COUNT; i++)
+	HeapFree(GetProcessHeap(), 0, cs->queue[i].data);
+
     HeapFree(GetProcessHeap(), 0, cs->fb.render_targets);
     HeapFree(GetProcessHeap(), 0, cs->data);
     HeapFree(GetProcessHeap(), 0, cs);
