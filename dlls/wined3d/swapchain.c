@@ -679,6 +679,9 @@ static void wined3d_swapchain_apply_sample_count_override(const struct wined3d_s
     if (!(format = wined3d_get_format(gl_info, format_id, WINED3DUSAGE_RENDERTARGET)))
         return;
 
+    if (!format->multisample_types)
+	return;
+
     if ((t = min(wined3d_settings.sample_count, gl_info->limits.samples)))
         while (!(format->multisample_types & 1u << (t - 1)))
             ++t;
