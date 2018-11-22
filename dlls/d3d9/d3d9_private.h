@@ -40,7 +40,7 @@
 #include "d3d9.h"
 #include "wine/wined3d.h"
 
-#define D3D9_MAX_VERTEX_SHADER_CONSTANTF 256
+#define D3D9_MAX_VERTEX_SHADER_CONSTANTF 8192
 #define D3D9_MAX_TEXTURE_UNITS 20
 
 #define D3DPRESENTFLAGS_MASK 0x00000fffu
